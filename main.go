@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -25,8 +26,7 @@ type FileStore struct {
 func (f FileStore) Load() ([]Person, error) {
 	file, err := os.ReadFile(f.FilePath)
 	if err != nil {
-		fmt.Println("📭 No data file found. Starting fresh.")
-		return []Person{}, nil
+		return []Person{}, fmt.Errorf("📭 failed to read main file: %w", err)
 	}
 
 	var people []Person
@@ -39,14 +39,12 @@ func (f FileStore) Load() ([]Person, error) {
 
 	backup, err := os.ReadFile("backup_people.json")
 	if err != nil {
-		fmt.Println("❌ Backup file missing.")
-		return []Person{}, nil
+		return []Person{}, fmt.Errorf("❌ failed to read backup file: %w", err)
 	}
 
 	err = json.Unmarshal(backup, &people)
 	if err != nil {
-		fmt.Println("❌ Backup file also broken. Starting empty.")
-		return []Person{}, nil
+		return []Person{}, fmt.Errorf("❌ failed to parse backup file: %w", err)
 	}
 
 	fmt.Println("✅ Loaded from backup.")
@@ -56,23 +54,33 @@ func (f FileStore) Load() ([]Person, error) {
 func (f FileStore) Save(people []Person) error {
 	data, err := json.MarshalIndent(people, "", "  ")
 	if err != nil {
-		return err
+		return fmt.Errorf("❌ failed to marshal people data: %w", err)
 	}
 
 	err = os.WriteFile(f.FilePath, data, 0644)
 	if err != nil {
-		return err
+		return fmt.Errorf("❌ failed to write file: %w", err)
 	}
 
-	// 🔧 Backup file
 	_ = os.WriteFile("backup_people.json", data, 0644)
 	return nil
 }
 
 func main() {
+	logfile, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		fmt.Println("❌ Could not open log file:", err)
+		return
+	}
+	log.SetOutput(logfile)
+
 	var store PersonStore = FileStore{FilePath: "people.json"}
 
-	people, _ := store.Load()
+	people, err := store.Load()
+	if err != nil {
+		fmt.Println("❌ Error loading data:", err)
+		return
+	}
 
 	for {
 		fmt.Print("\nEnter command (add, list, update, delete, search, save, exit): ")

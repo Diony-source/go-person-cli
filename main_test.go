@@ -2,6 +2,7 @@ package main
 
 import (
 	"testing"
+	"os"
 )
 
 type MemoryStore struct {
@@ -17,7 +18,6 @@ func (m *MemoryStore) Load() ([]Person, error) {
 	return m.Data, nil
 }
 
-// 1. SAVE + LOAD test — correctness test
 func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	store := &MemoryStore{}
 
@@ -47,7 +47,6 @@ func TestMemoryStore_SaveAndLoad(t *testing.T) {
 	}
 }
 
-// 2. LOAD empty list test — edge-case test
 func TestMemoryStore_LoadEmpty(t *testing.T) {
 	store := &MemoryStore{}
 
@@ -61,12 +60,11 @@ func TestMemoryStore_LoadEmpty(t *testing.T) {
 	}
 }
 
-// 3. DELETE test — state change test
 func TestMemoryStore_DeletePerson(t *testing.T) {
 	store := &MemoryStore{
 		Data: []Person{
-			{Name: "Bob", Age: 30, Phone: "111"},
-			{Name: "Alice", Age: 25, Phone: "222"},
+			{Name: "Ali", Age: 30, Phone: "111"},
+			{Name: "Ayşe", Age: 25, Phone: "222"},
 		},
 	}
 
@@ -81,7 +79,6 @@ func TestMemoryStore_DeletePerson(t *testing.T) {
 	}
 }
 
-// 4. UPDATE test — state change test
 func TestMemoryStore_UpdatePerson(t *testing.T) {
 	store := &MemoryStore{
 		Data: []Person{
@@ -95,4 +92,27 @@ func TestMemoryStore_UpdatePerson(t *testing.T) {
 	if store.Data[0] != updated {
 		t.Errorf("Update failed: got %+v, want %+v", store.Data[0], updated)
 	}
+}
+
+func TestMemoryStore_WhenMainFileMissing(t *testing.T) {
+	FileStore := FileStore{FilePath: "non_existent_file.json"}
+	_, err := FileStore.Load()
+	if err == nil {
+		t.Fatalf("Expected error when loading from non-existent file, got nil")
+	}
+}
+
+func TestLoad_WhenMainAndBackupAreCorrupted(t *testing.T) {
+	_ = os.WriteFile("bad.json", []byte("{invalid json"), 0644)
+	_ = os.WriteFile("backup_people.json", []byte("{also bad"), 0644)
+
+	store := FileStore{FilePath: "bad.json"}
+	_, err := store.Load()
+
+	if err == nil {
+		t.Fatal("Expected error when both files are corrupted, got nil")
+	}
+
+	_ = os.Remove("bad.json")
+	_ = os.Remove("backup_people.json")
 }

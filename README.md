@@ -25,3 +25,14 @@ git clone https://github.com/YOUR_USERNAME/go-person-cli.git
 cd go-person-cli
 go mod tidy
 go run main.go
+
+---
+
+## 🧪 Tests
+
+This project includes unit tests using Go's built-in testing package.
+
+### Run all tests:
+
+```bash
+go test -v
