@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 )
@@ -67,19 +67,18 @@ func (f FileStore) Save(people []Person) error {
 }
 
 func main() {
-	logfile, err := os.OpenFile("log.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		fmt.Println("❌ Could not open log file:", err)
-		return
-	}
-	log.SetOutput(logfile)
 
 	var store PersonStore = FileStore{FilePath: "people.json"}
 
 	people, err := store.Load()
 	if err != nil {
-		fmt.Println("❌ Error loading data:", err)
-		return
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Println("📭 Starting with empty contact list.")
+			people = []Person{}
+		} else {
+			fmt.Println("❌ Error loading data:", err)
+			return
+		}
 	}
 
 	for {

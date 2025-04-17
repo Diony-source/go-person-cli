@@ -12,7 +12,6 @@ This application allows users to manage their contacts from the command line wit
 - A backup file `backup_people.json` is generated every time you save
 - Fallback mechanism loads from backup if the main file is corrupted
 - Error handling with wrapped context using `fmt.Errorf`
-- Logs written to `log.txt` on each run (cleared at start)
 - Interface-driven architecture with testable components
 - `MemoryStore` used for unit testing (mock store)
 
