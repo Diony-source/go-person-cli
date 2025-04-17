@@ -8,11 +8,13 @@ This application allows users to manage their contacts from the command line wit
 ## 🚀 Features
 
 - Add, list, search, update, delete contacts
-- `people.json` will be created automatically on first save
-- A backup file `backup_people.json` will be generated each time you save
-- Struct-based design for clean data representation
+- `people.json` is automatically created on first save
+- A backup file `backup_people.json` is generated every time you save
+- Fallback mechanism loads from backup if the main file is corrupted
+- Error handling with wrapped context using `fmt.Errorf`
+- Logs written to `log.txt` on each run (cleared at start)
 - Interface-driven architecture with testable components
-- `MemoryStore` used for unit testing (mocked store)
+- `MemoryStore` used for unit testing (mock store)
 
 ---
 
@@ -25,14 +27,3 @@ git clone https://github.com/YOUR_USERNAME/go-person-cli.git
 cd go-person-cli
 go mod tidy
 go run main.go
-
----
-
-## 🧪 Tests
-
-This project includes unit tests using Go's built-in testing package.
-
-### Run all tests:
-
-```bash
-go test -v
